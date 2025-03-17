@@ -51,6 +51,9 @@ jobs:
             git add "$i/test"
             git commit -m "Update test file in folder $i"
 
+            # Get the commit SHA
+            COMMIT_SHA=$(git rev-parse --short HEAD)
+            
             # Push changes
             git push origin $BRANCH_NAME
 
@@ -59,14 +62,13 @@ jobs:
 
             # Create PR using GitHub CLI
             gh pr create \
-              --title "Update test file in folder $i" \
+              --title "Update test file in folder $i - $COMMIT_SHA" \
               --body "This PR updates the test file in folder $i" \
               --base main \
               --head $BRANCH_NAME \
-              --repo yashrajdighe/destination-repo \
-              --label "auto-merge" \
+              --repo yashrajdighe/destination-repo
 
             # Enable auto-merge for the PR
-            PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number' --repo yashrajdighe/destination-repo)
-            gh pr merge $PR_NUMBER --auto --merge --token ${{ steps.generate_token.outputs.token }} --repo yashrajdighe/destination-repo
+            PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number,title --jq '.[] | select(.title | contains("'"$COMMIT_SHA"'")) | .number' --repo yashrajdighe/destination-repo)
+            gh pr merge $PR_NUMBER --auto --merge --repo yashrajdighe/destination-repo
           done
