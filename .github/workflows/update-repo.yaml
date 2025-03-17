@@ -37,8 +37,9 @@ jobs:
       - name: Create PRs for each folder
         run: |
           for i in $(seq 1 ${{ inputs.number_of_changes }}); do
-            # Create a new branch
-            BRANCH_NAME="update-folder-$i"
+            # Create a new branch with date and time
+            CURRENT_DATE=$(date '+%Y%m%d-%H%M%S')
+            BRANCH_NAME="update-folder-$i-$CURRENT_DATE"
             git checkout -b $BRANCH_NAME
 
             # Create folder if it doesn't exist
