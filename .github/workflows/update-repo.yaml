@@ -1,0 +1,68 @@
+name: Update Repo and Create PRs
+
+on:
+  workflow_dispatch:
+    inputs:
+      number_of_changes:
+        description: 'Number of changes to make (1-10)'
+        required: true
+        type: number
+        minimum: 1
+        maximum: 10
+
+jobs:
+  create-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Generate App Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: yashrajdighe
+
+      - name: Clone destination repository
+        run: |
+          git clone https://github.com/yashrajdighe/destination-repo.git
+          cd destination-repo
+
+      - name: Create PRs for each folder
+        run: |
+          for i in $(seq 1 ${{ inputs.number_of_changes }}); do
+            # Create a new branch
+            BRANCH_NAME="update-folder-$i"
+            git checkout -b $BRANCH_NAME
+
+            # Create folder if it doesn't exist
+            mkdir -p "$i"
+
+            # Update the test file in the folder with date and time
+            echo "Folder $i was updated on $(date '+%B %d, %Y at %I:%M:%S %p')" > "$i/test"
+            
+            # Commit changes
+            git add "$i/test"
+            git commit -m "Update test file in folder $i"
+
+            # Push changes
+            git push origin $BRANCH_NAME
+
+            # Create PR using GitHub CLI
+            gh pr create \
+              --title "Update test file in folder $i" \
+              --body "This PR updates the test file in folder $i" \
+              --base main \
+              --head $BRANCH_NAME \
+              --repo yashrajdighe/destination-repo \
+              --label "auto-merge" \
+              --token ${{ steps.generate_token.outputs.token }}
+
+            # Enable auto-merge for the PR
+            PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number')
+            gh pr merge $PR_NUMBER --auto --merge --token ${{ steps.generate_token.outputs.token }}
+          done
