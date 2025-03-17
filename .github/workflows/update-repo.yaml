@@ -37,16 +37,22 @@ jobs:
       - name: Create PRs for each folder
         run: |
           for i in $(seq 1 ${{ inputs.number_of_changes }}); do
-            # Create a new branch with date and time
+            # Make sure we're on main and have latest changes
+            git checkout main
+            git pull origin main
+            
+            # Create a new branch with date and time and unique identifier
             CURRENT_DATE=$(date '+%Y%m%d-%H%M%S')
-            BRANCH_NAME="update-folder-$i-$CURRENT_DATE"
+            UNIQUE_ID=$(openssl rand -hex 4)
+            BRANCH_NAME="update-folder-$i-$CURRENT_DATE-$UNIQUE_ID"
             git checkout -b $BRANCH_NAME
 
             # Create folder if it doesn't exist
             mkdir -p "$i"
 
-            # Update the test file in the folder with date and time
-            echo "Folder $i was updated on $(date '+%B %d, %Y at %I:%M:%S %p')" > "$i/test"
+            # Create or update the test file with a section uniquely identified for this run
+            # This appends unique content instead of replacing the whole file
+            echo "Update $UNIQUE_ID: Folder $i was updated on $(date '+%B %d, %Y at %I:%M:%S %p')" >> "$i/test"
             
             # Commit changes
             git add "$i/test"
