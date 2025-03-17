@@ -54,6 +54,9 @@ jobs:
             # Push changes
             git push origin $BRANCH_NAME
 
+            # gh auth login
+            gh auth login --with-token <<< ${{ steps.generate_token.outputs.token }}
+
             # Create PR using GitHub CLI
             gh pr create \
               --title "Update test file in folder $i" \
@@ -62,7 +65,6 @@ jobs:
               --head $BRANCH_NAME \
               --repo yashrajdighe/destination-repo \
               --label "auto-merge" \
-              --token ${{ steps.generate_token.outputs.token }}
 
             # Enable auto-merge for the PR
             PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number' --repo yashrajdighe/destination-repo)
