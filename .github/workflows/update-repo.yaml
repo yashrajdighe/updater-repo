@@ -1,4 +1,5 @@
 name: Update Repo and Create PRs
+run-name: Creating ${{ inputs.number_of_changes }} PRs in destination repo
 
 on:
   workflow_dispatch:
