@@ -28,10 +28,11 @@ jobs:
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: yashrajdighe
 
-      - name: Clone destination repository
-        run: |
-          git clone https://github.com/yashrajdighe/destination-repo.git
-          cd destination-repo
+      - name: Checkout destination repository
+        uses: actions/checkout@v4
+        with:
+          repository: yashrajdighe/destination-repo
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Create PRs for each folder
         run: |
@@ -64,6 +65,6 @@ jobs:
               --token ${{ steps.generate_token.outputs.token }}
 
             # Enable auto-merge for the PR
-            PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number')
-            gh pr merge $PR_NUMBER --auto --merge --token ${{ steps.generate_token.outputs.token }}
+            PR_NUMBER=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number' --repo yashrajdighe/destination-repo)
+            gh pr merge $PR_NUMBER --auto --merge --token ${{ steps.generate_token.outputs.token }} --repo yashrajdighe/destination-repo
           done
