@@ -29,7 +29,7 @@ jobs:
           owner: yashrajdighe
 
       - name: Checkout destination repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: yashrajdighe/destination-repo
           token: ${{ steps.generate_token.outputs.token }}
